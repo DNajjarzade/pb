@@ -39,7 +39,9 @@ def _put(stream):
     digest = sha1(b).hexdigest()
     size = len(b)
     
-    if len(stream.getvalue()) > 2 ** 23:
+    #if len(stream.getvalue()) > 2 ** 23:
+    #    b = get_fs().put(b)
+    if size > 2 ** 23:
         b = get_fs().put(b)
     
     return dict(
@@ -73,6 +75,7 @@ def put(stream, mimetype=None, headers={}, **kwargs):
     return get_db().pastes.update(transform(kwargs), {
         '$set': transform(args)
     })
+
 
 
 def delete(**kwargs):
