@@ -11,7 +11,7 @@ services:
     environment:
       - 'LISTEN_ADDRESS=::'
       - 'LISTEN_PORT=10002'
-      - 'CDN_PREFIX=//d34zelngniy2d8.cloudfront.net'
+      - 'CDN_PREFIX=//pb.najjarza.de'
 
   mongodb:
     image: mongo:latest

@@ -52,7 +52,7 @@ pb will be listening on ``http://localhost:10002``
 Deployment
 ----------
 
-ptpb.pw (the reference deployment) uses `ptpb-deploy
+pb.najjarza.de (the reference deployment) uses `ptpb-deploy
 <https://github.com/ptpb/ptpb-deploy>`_, which includes TLS termination,
 automatic x509 certificate rotation, and response caching.
 

@@ -25,7 +25,7 @@ parser = ArgumentParser(description='administratively delete pastes by digest',
 parser.add_argument('id',
                     help='paste id to delete')
 parser.add_argument('--endpoint',
-                    help='pb endpoint', default='https://ptpb.pw')
+                    help='pb endpoint', default='https://pb.najjarza.de')
 
 
 def delete_paste(digest):
