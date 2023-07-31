@@ -14,6 +14,7 @@ from pymongo.errors import DuplicateKeyError
 
 from pb.namespace import model
 from pb.responses import NamespaceResponse, StatusResponse
+from flask import render_template
 
 namespace = Blueprint('namespace', __name__)
 
@@ -38,3 +39,8 @@ def post(namespace):
         return StatusResponse('duplicate', code=409)
 
     return NamespaceResponse(namespace, 'created', code=201)
+
+@namespace.route('/a')                                                                                                                                    
+def index():                                                                                                                                         
+                                                                                                                                                     
+    return render_template("swaggerui.html")  

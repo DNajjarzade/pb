@@ -1,0 +1,1067 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "pb",
+        "version": "",
+        "description": "pb is a lightweight pastebin (and url shortener) built using flask.\n\n## API Media Types\n\nMost routes support multiple mixed request and response types, using\nthe `Content-Type` and `Accept` headers, respectively.\n\nThe primary use-cases are:\n\n| `Content-Type`        | `Accept`           |\n| --------------------- | ------------------ |\n| `multipart/form-data` | `text/x-yaml,*/*`  |\n| `multipart/mixed`     | `application/json` |\n| `application/json`    | `application/json` |\n\nAll `text/*` responses from pb may also use `charset=utf-8`. All\n`text/plain` responses are valid yaml, and should be parsed as such.\n\n## Paste Media Types\n\nPastes can have custom media types as well. For methods that support\nit, the `filename` request attribute is parsed, and converted\nto a mimetype (e.g: `foo.jpg` is parsed into `image/jpeg`). This\nmimetype, if successfully parsed, is returned in the `Content-Type`\nheader for subsequent get requests for that paste.\n\nThis behavior can also be controlled per-request by appending a\nmimetype extension to the paste ID (e.g: a paste with short `Z7_u` can\nbe referenced as `Z7_u.png` and have the `image/png` mimetype for that\nrequest only)."
+    },
+    "host": "pb.najjarza.de",
+    "basePath": "/",
+    "schemes": [
+        "https"
+    ],
+    "paths": {
+        "/{label}": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Vary": {
+                                "type": "string"
+                            },
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "url": "https://pb.najjarza.de/rHd5",
+                                "long": "AJJ1vikJUiGkSLlni-aYVR8UrHd5",
+                                "short": "rHd5",
+                                "digest": "9275be29095221a448b9678be698551f14ac7779",
+                                "date": "2017-03-08T01:02:45.621000+00:00",
+                                "size": 11,
+                                "uuid": "5dbe3f5b-78f3-4c2b-9965-58f88a0a5da5",
+                                "label": "f",
+                                "sunset": "2017-03-08T01:02:45.621000+00:00",
+                                "status": "created",
+                                "namespace": "",
+                                "redirect": 1
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "long": {
+                                    "type": "string"
+                                },
+                                "short": {
+                                    "type": "string"
+                                },
+                                "digest": {
+                                    "type": "string"
+                                },
+                                "date": {
+                                    "type": "string"
+                                },
+                                "size": {
+                                    "type": "number"
+                                },
+                                "uuid": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "sunset": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "created",
+                                        "deleted",
+                                        "expired",
+                                        "already exists",
+                                        "found",
+                                        "updated"
+                                    ]
+                                },
+                                "namespace": {
+                                    "type": "string",
+                                    "description": "undocumented"
+                                },
+                                "redirect": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "url",
+                                "long",
+                                "digest",
+                                "date",
+                                "size",
+                                "status"
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "headers": {
+                            "Vary": {
+                                "type": "string"
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "status": "no post content"
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "status"
+                            ]
+                        }
+                    }
+                },
+                "summary": "create paste",
+                "operationId": "create paste",
+                "description": "All request attributes (disposition names, json object fields) can be\nreferenced by their full name or first letter.\n\nA compliant client must be prepared to accept responses that do not\nmatch the requested response content type. A minimal client would\npresent such a response as a \"generic server-side error\" to the user.",
+                "tags": [
+                    "paste crud"
+                ],
+                "parameters": [
+                    {
+                        "name": "label",
+                        "in": "path",
+                        "description": "create a paste with a vanity label. A label currently must be at least two characters, and the first character must be `~`.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "description": "e.g. */*",
+                        "required": false,
+                        "x-example": "*/*",
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string",
+                                    "description": "the extension of the provided filename is parsed into a mimetype, and stored internally."
+                                },
+                                "private": {
+                                    "type": "number",
+                                    "description": "when specified, the paste will not be accessible via `short` id."
+                                },
+                                "sunset": {
+                                    "type": "string",
+                                    "description": "when specified, the paste will become unavailable after the provided datetime."
+                                }
+                            },
+                            "required": [
+                                "content"
+                            ],
+                            "example": {
+                                "content": "Hello World!!",
+                                "filename": "kittens.jpg",
+                                "private": 1,
+                                "sunset": "2017-03-07T21:49:37.654602+00:00"
+                            }
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/{id}": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {}
+                    }
+                },
+                "summary": "read paste",
+                "operationId": "read paste",
+                "description": "Returns paste content for a given paste id.",
+                "tags": [
+                    "paste crud"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "paste id, any of the `long`, `short`, `label`, or `digest` attributes",
+                        "required": true,
+                        "type": "string"
+                    }
+                ]
+            },
+            "put": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "application/json": {
+                                "url": "https://pb.najjarza.de/rHd5",
+                                "long": "AJJ1vikJUiGkSLlni-aYVR8UrHd5",
+                                "short": "rHd5",
+                                "digest": "9275be29095221a448b9678be698551f14ac7779",
+                                "date": "2017-03-08T01:02:45.621000+00:00",
+                                "size": 11,
+                                "uuid": "5dbe3f5b-78f3-4c2b-9965-58f88a0a5da5",
+                                "label": "f",
+                                "sunset": "2017-03-08T01:02:45.621000+00:00",
+                                "status": "created",
+                                "namespace": "",
+                                "redirect": 1
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "long": {
+                                    "type": "string"
+                                },
+                                "short": {
+                                    "type": "string"
+                                },
+                                "digest": {
+                                    "type": "string"
+                                },
+                                "date": {
+                                    "type": "string"
+                                },
+                                "size": {
+                                    "type": "number"
+                                },
+                                "uuid": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "sunset": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "created",
+                                        "deleted",
+                                        "expired",
+                                        "already exists",
+                                        "found",
+                                        "updated"
+                                    ]
+                                },
+                                "namespace": {
+                                    "type": "string",
+                                    "description": "undocumented"
+                                },
+                                "redirect": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "url",
+                                "long",
+                                "digest",
+                                "date",
+                                "size",
+                                "status"
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "headers": {},
+                        "examples": {
+                            "application/json": {
+                                "status": "no post content"
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "status"
+                            ]
+                        }
+                    }
+                },
+                "summary": "update paste",
+                "operationId": "update paste",
+                "description": "Replace paste attributes.",
+                "tags": [
+                    "paste crud"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "paste id, the `uuid` attribute",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string",
+                                    "description": "the extension of the provided filename is parsed into a mimetype, and stored internally."
+                                },
+                                "private": {
+                                    "type": "number",
+                                    "description": "when specified, the paste will not be accessible via `short` id."
+                                },
+                                "sunset": {
+                                    "type": "string",
+                                    "description": "when specified, the paste will become unavailable after the provided datetime."
+                                }
+                            },
+                            "required": [
+                                "content"
+                            ],
+                            "example": {
+                                "content": "Hello World!!",
+                                "filename": "kittens.jpg",
+                                "private": 1,
+                                "sunset": "2017-03-07T21:49:37.654602+00:00"
+                            }
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ]
+            },
+            "delete": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Vary": {
+                                "type": "string"
+                            },
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "url": "https://pb.najjarza.de/rHd5",
+                                "long": "AJJ1vikJUiGkSLlni-aYVR8UrHd5",
+                                "short": "rHd5",
+                                "digest": "9275be29095221a448b9678be698551f14ac7779",
+                                "date": "2017-03-08T01:02:45.621000+00:00",
+                                "size": 11,
+                                "uuid": "5dbe3f5b-78f3-4c2b-9965-58f88a0a5da5",
+                                "label": "f",
+                                "sunset": "2017-03-08T01:02:45.621000+00:00",
+                                "status": "created",
+                                "namespace": "",
+                                "redirect": 1
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "long": {
+                                    "type": "string"
+                                },
+                                "short": {
+                                    "type": "string"
+                                },
+                                "digest": {
+                                    "type": "string"
+                                },
+                                "date": {
+                                    "type": "string"
+                                },
+                                "size": {
+                                    "type": "number"
+                                },
+                                "uuid": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "sunset": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "created",
+                                        "deleted",
+                                        "expired",
+                                        "already exists",
+                                        "found",
+                                        "updated"
+                                    ]
+                                },
+                                "namespace": {
+                                    "type": "string",
+                                    "description": "undocumented"
+                                },
+                                "redirect": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "url",
+                                "long",
+                                "digest",
+                                "date",
+                                "size",
+                                "status"
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "headers": {
+                            "Vary": {
+                                "type": "string"
+                            }
+                        },
+                        "examples": {
+                            "application/json": {
+                                "status": "not found"
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "status"
+                            ]
+                        }
+                    }
+                },
+                "summary": "delete paste",
+                "operationId": "delete paste",
+                "description": "This type of deletion will make the paste no longer exist.",
+                "tags": [
+                    "paste crud"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "paste id, the `uuid` attribute",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "description": "e.g. application/json",
+                        "required": false,
+                        "x-example": "application/json",
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/u": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "application/json": {
+                                "url": "https://pb.najjarza.de/rHd5",
+                                "long": "AJJ1vikJUiGkSLlni-aYVR8UrHd5",
+                                "short": "rHd5",
+                                "digest": "9275be29095221a448b9678be698551f14ac7779",
+                                "date": "2017-03-08T01:02:45.621000+00:00",
+                                "size": 11,
+                                "uuid": "5dbe3f5b-78f3-4c2b-9965-58f88a0a5da5",
+                                "label": "f",
+                                "sunset": "2017-03-08T01:02:45.621000+00:00",
+                                "status": "created",
+                                "namespace": "",
+                                "redirect": 1
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "long": {
+                                    "type": "string"
+                                },
+                                "short": {
+                                    "type": "string"
+                                },
+                                "digest": {
+                                    "type": "string"
+                                },
+                                "date": {
+                                    "type": "string"
+                                },
+                                "size": {
+                                    "type": "number"
+                                },
+                                "uuid": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "sunset": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "created",
+                                        "deleted",
+                                        "expired",
+                                        "already exists",
+                                        "found",
+                                        "updated"
+                                    ]
+                                },
+                                "namespace": {
+                                    "type": "string",
+                                    "description": "undocumented"
+                                },
+                                "redirect": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "url",
+                                "long",
+                                "digest",
+                                "date",
+                                "size",
+                                "status"
+                            ]
+                        }
+                    }
+                },
+                "summary": "create short url",
+                "operationId": "create short url",
+                "description": "This creates a new short url. This creates a special type of paste\nwhere the paste content is interpreted as a redirect destination. A `GET` request for this paste, instead of returning the paste body, will instead return a `301 Moved Permanently` response.",
+                "tags": [
+                    "short url"
+                ],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string"
+                                }
+                            },
+                            "example": {
+                                "content": "https://apiblueprint.org/documentation/mson/specification.html"
+                            }
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/{id}/{lexer}/{formatter}": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "text/html": ""
+                        }
+                    }
+                },
+                "summary": "highlight paste",
+                "operationId": "highlight paste",
+                "description": "This applys syntax highlighting to the paste content.",
+                "tags": [
+                    "syntax highlighting"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "paste id, any of the `long`, `short`, `label`, or `digest` attributes",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "lexer",
+                        "in": "path",
+                        "description": "an alias of a pygments lexer; see `list lexers`",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "formatter",
+                        "in": "path",
+                        "description": "an alias of a pygments formatter; see `list formatters`",
+                        "required": false,
+                        "type": "string",
+                        "default": "html"
+                    },
+                    {
+                        "name": "style",
+                        "in": "query",
+                        "description": "an alias of a pygments style; see `list styles`",
+                        "required": false,
+                        "type": "string",
+                        "default": "default"
+                    }
+                ],
+                "produces": [
+                    "text/html"
+                ]
+            }
+        },
+        "/l": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "response/json": ""
+                        },
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    }
+                },
+                "summary": "list lexers",
+                "operationId": "list lexers",
+                "description": "List all available lexer aliases.\n\nThese aliases represent a language or type of syntax. This value should match the input paste content.",
+                "tags": [
+                    "syntax highlighting"
+                ],
+                "parameters": [],
+                "produces": [
+                    "response/json"
+                ]
+            }
+        },
+        "/lf": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "response/json": ""
+                        },
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    }
+                },
+                "summary": "list formatters",
+                "operationId": "list formatters",
+                "description": "List all available formatter aliases.\n\nThese aliases represent different output formats. This value should match the desired presentation format.",
+                "tags": [
+                    "syntax highlighting"
+                ],
+                "parameters": [],
+                "produces": [
+                    "response/json"
+                ]
+            }
+        },
+        "/ls": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "response/json": ""
+                        },
+                        "schema": {
+                            "type": "array",
+                            "items": {}
+                        }
+                    }
+                },
+                "summary": "list styles",
+                "operationId": "list styles",
+                "description": "List all available style aliases.\n\nThese aliases represent different styles. These change the styles and colors applied to each type of syntax element.",
+                "tags": [
+                    "syntax highlighting"
+                ],
+                "parameters": [],
+                "produces": [
+                    "response/json"
+                ]
+            }
+        },
+        "/r/{id}": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "text/html": "<!-- rendered markup -->\n"
+                        }
+                    }
+                },
+                "summary": "render paste markup",
+                "operationId": "render paste markup",
+                "description": "The paste or request mimetype is used to determine if the paste\ncontent is intended to be interpreted as reStructuredText or Markdown,\nfalling back to reStructuredText if no such data is available, or does\nnot match known mimetypes.\n\nThe paste content is then transformed by a reStructuredText or\nMarkdown renderer, accordingly.",
+                "tags": [
+                    "paste transforms"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "paste id, any of the `long`, `short`, `label`, or `digest` attributes",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "text/html"
+                ]
+            }
+        },
+        "/r": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "text/html": "<!-- rendered markup -->\n"
+                        }
+                    }
+                },
+                "summary": "render markup",
+                "operationId": "render markup",
+                "description": "This is identical to `render paste markup`, except the request content\nis transformed instead of paste content.",
+                "tags": [
+                    "paste transforms"
+                ],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string"
+                                }
+                            },
+                            "example": {
+                                "content": "An h1 header\n============\n\nParagraphs are separated by a blank line.\n"
+                            }
+                        }
+                    }
+                ],
+                "produces": [
+                    "text/html"
+                ]
+            }
+        },
+        "/t/{id}": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "text/html": "<!-- asciinema-player -->\n"
+                        }
+                    }
+                },
+                "summary": "render paste terminal session",
+                "operationId": "render paste terminal session",
+                "description": "The paste content is expected to be asciicast json v1. The output is\nan asciinema-player that is fed the paste content. This is used for\nplayback of terminal recordings.",
+                "tags": [
+                    "paste transforms"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "paste id, any of the `long`, `short`, `label`, or `digest` attributes",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "text/html"
+                ]
+            }
+        },
+        "/t": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "text/html": "<!-- asciinema-player -->\n"
+                        }
+                    }
+                },
+                "summary": "render terminal session",
+                "operationId": "render terminal session",
+                "description": "This is identical to `render paste terminal session`, except the\nrequest content is transformed instead of paste content.",
+                "tags": [
+                    "paste transforms"
+                ],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string"
+                                }
+                            },
+                            "example": {
+                                "content": "{\"version\": 1, \"width\": 90, \"height\": 57, \"duration\": 2.26401, \"command\": \"/bin/zsh\", \"title\": \"\", \"env\": {\"TERM\": \"rxvt-unicode-256color\", \"SHELL\": \"/bin/zsh\"}, \"stdout\": []}"
+                            }
+                        }
+                    }
+                ],
+                "produces": [
+                    "text/html"
+                ]
+            }
+        },
+        "/s": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {},
+                        "examples": {
+                            "application/json": {
+                                "pastes": 59226
+                            }
+                        },
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "pastes": {
+                                    "type": "number",
+                                    "description": "the number of pastes in the database"
+                                }
+                            },
+                            "required": [
+                                "pastes"
+                            ]
+                        }
+                    }
+                },
+                "summary": "paste statistics",
+                "operationId": "paste statistics",
+                "description": "Provides arbitrary interesting paste metadata.",
+                "tags": [
+                    "server metadata"
+                ],
+                "parameters": [],
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "create paste": {},
+        "read paste": {},
+        "update paste": {},
+        "delete paste": {},
+        "create short url": {},
+        "highlight paste": {},
+        "list lexers": {},
+        "list formatters": {},
+        "list styles": {},
+        "render paste markup": {},
+        "render markup": {},
+        "render paste terminal session": {},
+        "render terminal session": {},
+        "paste statistics": {},
+        "Paste Data": {
+            "type": "object",
+            "required": [
+                "url",
+                "long",
+                "digest",
+                "date",
+                "size",
+                "status"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "example": "https://pb.najjarza.de/rHd5"
+                },
+                "long": {
+                    "type": "string",
+                    "example": "AJJ1vikJUiGkSLlni-aYVR8UrHd5"
+                },
+                "short": {
+                    "type": "string",
+                    "example": "rHd5"
+                },
+                "digest": {
+                    "type": "string",
+                    "example": "9275be29095221a448b9678be698551f14ac7779"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2017-03-08T01:02:45.621000+00:00"
+                },
+                "size": {
+                    "type": "number",
+                    "example": 11
+                },
+                "uuid": {
+                    "type": "string",
+                    "example": "5dbe3f5b-78f3-4c2b-9965-58f88a0a5da5"
+                },
+                "label": {
+                    "type": "string",
+                    "example": "f"
+                },
+                "sunset": {
+                    "type": "string",
+                    "example": "2017-03-08T01:02:45.621000+00:00"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "created",
+                        "deleted",
+                        "expired",
+                        "already exists",
+                        "found",
+                        "updated"
+                    ]
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "undocumented"
+                },
+                "redirect": {
+                    "type": "number",
+                    "example": 1
+                }
+            }
+        },
+        "Paste Request": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "Hello World!!"
+                },
+                "filename": {
+                    "type": "string",
+                    "example": "kittens.jpg",
+                    "description": "the extension of the provided filename is parsed into a mimetype, and stored internally."
+                },
+                "private": {
+                    "type": "number",
+                    "example": 1,
+                    "description": "when specified, the paste will not be accessible via `short` id."
+                },
+                "sunset": {
+                    "type": "string",
+                    "example": "2017-03-07T21:49:37.654602+00:00",
+                    "description": "when specified, the paste will become unavailable after the provided datetime."
+                }
+            }
+        },
+        "Short URL Request": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "https://apiblueprint.org/documentation/mson/specification.html"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {},
+    "tags": [
+        {
+            "name": "paste crud"
+        },
+        {
+            "name": "short url"
+        },
+        {
+            "name": "syntax highlighting"
+        },
+        {
+            "name": "paste transforms"
+        },
+        {
+            "name": "server metadata"
+        }
+    ]
+}
